@@ -4,7 +4,7 @@
 
 ---
 
-## Overview
+## Experimental Overview 
 
 This repository contains the full implementation for the paper *"Beyond Accuracy: A Calibration-Driven and Statistically Robust Explainable Deep Learning Framework for Brain Tumor MRI Classification"*. The framework targets the limitations of accuracy-only evaluation in medical imaging by combining:
 
@@ -17,7 +17,6 @@ This repository contains the full implementation for the paper *"Beyond Accuracy
 - **Selective prediction** (risk-coverage) analysis
 
 All numerical claims in the manuscript are traceable to `outputs_pytorch/<DATASET>/experiment_summary.json`.
-
 ---
 
 ## Repository Structure
