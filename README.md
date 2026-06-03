@@ -131,7 +131,6 @@ Every run produces a `experiment_summary.json` containing all manuscript-reporte
 ```
 
 ---
-![alt text](image-4.png)
 <img src="image-4.png" width="50%" />
 Figure 3. Learning dynamics of the proposed model on (a) D1, (b) D2, (c) D3, and (d) D4. Each panel shows training and validation loss (left) and accuracy (right) during optimization.
 
