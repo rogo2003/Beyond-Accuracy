@@ -1,0 +1,47 @@
+{
+  "dataset": "D1",
+  "hash_type": "DCT perceptual hash",
+  "hash_bits": 64,
+  "near_duplicate_hamming_threshold": 6,
+  "total_images": 3264,
+  "unique_duplicate_groups": 1920,
+  "non_singleton_duplicate_groups": 652,
+  "largest_duplicate_group_size": 70,
+  "exact_phash_pairs": 713,
+  "near_duplicate_candidate_pairs": 1309,
+  "split_counts": {
+    "cal": 248,
+    "test": 340,
+    "train": 2391,
+    "val": 285
+  },
+  "class_by_split": {
+    "glioma": {
+      "cal": 64,
+      "test": 92,
+      "train": 695,
+      "val": 75
+    },
+    "meningioma": {
+      "cal": 74,
+      "test": 101,
+      "train": 673,
+      "val": 89
+    },
+    "no_tumor": {
+      "cal": 37,
+      "test": 50,
+      "train": 370,
+      "val": 43
+    },
+    "pituitary": {
+      "cal": 73,
+      "test": 97,
+      "train": 653,
+      "val": 78
+    }
+  },
+  "leakage_check": "PASS: no pHash duplicate group crosses train/cal/val/test partitions",
+  "split_csv": "./outputs_pytorch/D1/D1_phash_group_split.csv",
+  "candidate_pair_csv": "./outputs_pytorch/D1/D1_phash_candidate_pairs.csv"
+}
