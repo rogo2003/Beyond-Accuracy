@@ -1,7 +1,8 @@
 # Beyond Accuracy: A Calibration-Driven and Statistically Robust Explainable Deep Learning Framework for Brain Tumor MRI Classification
 
 # Graphical Abstract
-![Graphical Abstract](image.png)
+
+<img src="image.png" width="60%" />
 
 **Author:** Ibrahim Hayatu Hassan
 
@@ -130,6 +131,23 @@ Every run produces a `experiment_summary.json` containing all manuscript-reporte
 ```
 
 ---
+![alt text](image-4.png)
+Figure 3. Learning dynamics of the proposed model on (a) D1, (b) D2, (c) D3, and (d) D4. Each panel shows training and validation loss (left) and accuracy (right) during optimization.
+
+![alt text](image-1.png)
+Fig. 4 Confusion matrices of the proposed model on the test set for (a) D1, (b) D2, and (c) D3.
+
+![alt text](image-2.png)
+Fig. 5. Per-class ROC curves of the proposed model on (a) D1, (b) D2, and (c) D3
+
+![alt text](image-3.png)
+Fig. 6 Reliability diagrams before and after temperature scaling for the four datasets. 
+
+![alt text](image-5.png)
+Fig. 7. Deletion–Insertion faithfulness curves averaged over ten samples per class.
+
+![alt text](image-6.png)
+Figure 9. Cross-dataset generalization analysis. (a) Zero-shot transfer accuracy (%) between source and target datasets. Diagonal entries represent within-dataset performance, while off-diagonal entries correspond to external evaluation without fine-tuning. (b) Generalization gap (ΔAcc), defined as the reduction in accuracy relative to within-dataset performance. Larger values indicate stronger dataset shift and reduced transferability.
 
 ## Citation
 
