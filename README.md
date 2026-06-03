@@ -1,5 +1,8 @@
 # Beyond Accuracy: A Calibration-Driven and Statistically Robust Explainable Deep Learning Framework for Brain Tumor MRI Classification
 
+# Graphical Abstract
+![Graphical Abstract](image.png)
+
 **Author:** Ibrahim Hayatu Hassan
 
 ---
@@ -16,7 +19,7 @@ This repository contains the full implementation for the paper *"Beyond Accuracy
 - **Multi-method XAI ensemble** (SHAP, Grad-CAM++, Integrated Gradients) with top-10% IoU agreement and deletion/insertion AUC
 - **Selective prediction** (risk-coverage) analysis
 
-All numerical claims in the manuscript are traceable to `outputs_pytorch/<DATASET>/experiment_summary.json`.
+All numerical claims in the manuscript are traceable to `outputs file/<DATASET>/experiment_summary.json`.
 ---
 
 ## Repository Structure
@@ -137,7 +140,7 @@ If you use this code, please cite:
   title   = {Beyond Accuracy: A Calibration-Driven and Statistically Robust
              Explainable Deep Learning Framework for Brain Tumor MRI Classification},
   author  = {Hassan, Ibrahim Hayatu},
-  year    = {2025},
+  year    = {2026},
   note    = {Manuscript under review}
 }
 ```
