@@ -2,7 +2,7 @@
 
 # Graphical Abstract
 
-<img src="image.png" width="60%" />
+<img src="Abstract_new.pdf" width="50%" />
 
 **Author:** Ibrahim Hayatu Hassan
 
