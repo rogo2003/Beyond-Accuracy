@@ -1,4 +1,4 @@
-# Beyond Accuracy: A Calibration-Driven and Statistically Robust Explainable Deep Learning Framework for Brain Tumor MRI Classification
+# Beyond Accuracy: A Reliability-Oriented Framework for Brain Tumor MRI Classification with Calibration, Explainability, and Cross-Dataset Validation
 
 # Graphical Abstract
 
@@ -10,7 +10,7 @@
 
 ## Experimental Overview 
 
-This repository contains the full implementation for the paper *"Beyond Accuracy: A Calibration-Driven and Statistically Robust Explainable Deep Learning Framework for Brain Tumor MRI Classification"*. The framework targets the limitations of accuracy-only evaluation in medical imaging by combining:
+This repository contains the full implementation for the paper *"Beyond Accuracy: A Reliability-Oriented Framework for Brain Tumor MRI Classification with Calibration, Explainability, and Cross-Dataset Validation"*. The framework targets the limitations of accuracy-only evaluation in medical imaging by combining:
 
 - **EfficientNetV2-B0** backbone with a custom **Dual-Pooling Attention (DPA)** head
 - **Post-hoc temperature scaling** calibration on a dedicated, leakage-safe calibration split
@@ -155,9 +155,8 @@ If you use this code, please cite:
 
 ```bibtex
 @article{hassan2025beyondaccuracy,
-  title   = {Beyond Accuracy: A Calibration-Driven and Statistically Robust
-             Explainable Deep Learning Framework for Brain Tumor MRI Classification},
-  author  = {Hassan, Ibrahim Hayatu; Hitham, Alhussian; Said, Jadid Abdulkadir},
+  title   = {Beyond Accuracy: A Reliability-Oriented Framework for Brain Tumor MRI Classification with Calibration, Explainability, and Cross-Dataset Validation},
+  author  = {Hassan, Ibrahim Hayatu; Hitham, Alhussian; Said, Jadid Abdulkadir; Majdy, Mohamed Eltayeb Eltahi; Shamsuddeen, Adamu; Aliyu Garba; Abubakar, Mukhtar; Aliyu, Ibrahim Tetengi; Mohammed Abdullahi},
   year    = {2026},
   note    = {Manuscript under review}
 }
