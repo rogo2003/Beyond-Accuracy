@@ -147,7 +147,7 @@ calibrated.eval()
 | Table 6 (calibration) | `calibration` | ECE before/after, optimal T* |
 | Table 7 (XAI agreement) | `xai.iou_per_class`, `xai.deletion_insertion_auc` | Original submission only (one image per class; see Section 9) |
 
-In the **revised manuscript**, Table 13 (XAI agreement), Tables 14a–c (cross-dataset audit), Tables 11–12 (calibration), Figs. 6–9 and Supplementary Tables S1–S2 and Figs. S1–S3 are produced by the scripts in [`audit/`](audit/README.md), not by the notebook JSON.
+In the **revised manuscript**, Table 10 (per-class metrics), Tables 11–12 (calibration), Table 14 (XAI agreement), Tables 15a–c (cross-dataset audit), Figs. 1–9 and Supplementary Tables S1–S2 and Figs. S1–S3 are produced by the scripts in [`audit/`](audit/README.md), not by the notebook JSON.
 
 ---
 
@@ -176,9 +176,15 @@ The code for these corrections, with built-in checks that first reproduce the or
 
 | Step | Script | Manuscript items |
 |------|--------|------------------|
-| GPU (Kaggle) | `audit/kaggle/00_load_models.py` → `01`, `02`, `03` | Tables 13, 14b–c; Figs. 7–9; Supplementary Figs. S2–S3; Supplementary Table S2 |
+| GPU (Kaggle) | `audit/kaggle/00_load_models.py` → `01`, `02`, `03` | Tables 14, 15b–c; Figs. 7–9; Supplementary Figs. S2–S3; Supplementary Table S2 |
 | GPU (Kaggle) | `audit/kaggle/04`, `04b`, `05` (then re-run `01`, `03`) | Converged temperature scaling: Tables 11–12, Fig. 6, selective prediction; Supplementary Fig. S1 |
 | CPU (local) | `audit/local/13_phash_threshold_sensitivity.py` | Supplementary Table S1 (δ = 0–10) |
-| CPU (local) | `audit/local/10_overlap_table14a.py` | Table 14a |
-| CPU (local) | `audit/local/11_tables_and_stats.py` | Tables 13, 14b, 14c and all quoted counts (prints `ALL PASS`) |
+| CPU (local) | `audit/local/10_overlap_table14a.py` | Table 15a |
+| CPU (local) | `audit/local/11_tables_and_stats.py` | Tables 14, 15b, 15c and all quoted counts (prints `ALL PASS`) |
 | CPU (local) | `audit/local/12_figures.py` | Figs. 6, 7, 8, 9 and Supplementary Fig. S3 |
+| GPU (Kaggle) | `audit/kaggle/00` → `06_per_class_metrics.py` | Table 10 (per-class specificity and AUC); Figs. 4–5 |
+| GPU (Kaggle) | `audit/kaggle/00` → `07_training_history.py` | Fig. 3 (logged re-run of the final-model training) |
+| CPU (Kaggle) | `audit/kaggle/08_figure1_dataset_examples.py` | Fig. 1 |
+| CPU (local) | `audit/local/14_figure2_flowchart.py` | Fig. 2 |
+
+Script and output file names containing `table14` keep the numbering of the original submission (now Tables 15a–c).
