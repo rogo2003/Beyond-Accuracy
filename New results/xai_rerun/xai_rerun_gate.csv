@@ -1,0 +1,16 @@
+dataset,class,published_GI,reproduced_GI,match
+D1,glioma,0.0729,0.0729,True
+D1,meningioma,0.0154,0.0154,True
+D1,no_tumor,0.0577,0.0577,True
+D1,pituitary,0.0411,0.0411,True
+D2,glioma,0.0701,0.0701,True
+D2,meningioma,0.0193,0.0193,True
+D2,no_tumor,0.0852,0.0852,True
+D2,pituitary,0.1289,0.1289,True
+D3,glioma,0.0894,0.0894,True
+D3,meningioma,0.0711,0.0711,True
+D3,pituitary,0.1,0.1,True
+D4,glioma,0.0336,0.0336,True
+D4,meningioma,0.1406,0.1406,True
+D4,no_tumor,0.1,0.1,True
+D4,pituitary,0.1,0.1,True

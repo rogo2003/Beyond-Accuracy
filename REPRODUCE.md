@@ -115,18 +115,24 @@ If this field is missing or does not say PASS, the split integrity assertion in 
 import torch
 from beyond_accuracy import BrainTumorModel, TemperatureScaler, Config
 
-# Load backbone weights only
+def strip_swa(sd):  # checkpoints are saved from torch.optim.swa_utils.AveragedModel
+    return {k.removeprefix("module."): v for k, v in sd.items() if k != "n_averaged"}
+
+# Load model weights only
 model = BrainTumorModel(num_classes=Config.NUM_CLASSES).to("cuda")
-model.load_state_dict(torch.load("outputs_pytorch/D2/final_model_v5_pytorch.pth"))
+model.load_state_dict(strip_swa(torch.load("outputs_pytorch/D2/final_model_v5_pytorch.pth")))
 model.eval()
 
-# Load calibrated model (backbone weights + optimal temperature T*)
-checkpoint = torch.load("outputs_pytorch/D2/final_model_v5_calibrated_pytorch.pth")
-model.load_state_dict(checkpoint["model_state_dict"])
+# Load calibrated model (SWA weights + optimal temperature T*).
+# Without strip_swa, load_state_dict fails with "Missing key(s)".
+checkpoint = torch.load("outputs_pytorch/D2/final_model_v5_calibrated_pytorch.pth", weights_only=False)
+model.load_state_dict(strip_swa(checkpoint["model_state_dict"]), strict=True)
 calibrated = TemperatureScaler(model).to("cuda")
 calibrated.temperature.data.fill_(checkpoint["temperature"])
 calibrated.eval()
 ```
+
+> **Note:** `checkpoint["temperature"]` holds the originally fitted value (0.998 / 0.907 / 0.877 / 0.900 for D1–D4), which did not converge. The revised manuscript uses the converged temperatures 0.8752 / 0.7446 / 0.7351 / 0.7368; fill those in instead, or re-fit with `audit/kaggle/05_recalibrate.py`.
 
 ---
 
@@ -139,7 +145,9 @@ calibrated.eval()
 | Table 4 (ablation) | `ablation` | 5 rows |
 | Table 5 (baseline comparison) | `extra.baseline_results`, `mcnemar_holm` | Includes Holm-adjusted p |
 | Table 6 (calibration) | `calibration` | ECE before/after, optimal T* |
-| Table 7 (XAI agreement) | `xai.iou_per_class`, `xai.deletion_insertion_auc` | Per-class IoU |
+| Table 7 (XAI agreement) | `xai.iou_per_class`, `xai.deletion_insertion_auc` | Original submission only (one image per class; see Section 9) |
+
+In the **revised manuscript**, Table 13 (XAI agreement), Tables 14a–c (cross-dataset audit), Tables 11–12 (calibration), Figs. 6–9 and Supplementary Tables S1–S2 and Figs. S1–S3 are produced by the scripts in [`audit/`](audit/README.md), not by the notebook JSON.
 
 ---
 
@@ -151,4 +159,26 @@ calibrated.eval()
 | `RuntimeError: Duplicate groups were split across partitions` | Hash collision edge case | Should never happen; if it does, file an issue with the dataset key |
 | `thop.profile failed` | Model wrapper prevents FLOPs counting | The fallback estimate table activates automatically; no action needed |
 | `CUDA out of memory` | Batch size too large | Reduce `Config.BATCH_SIZE` to 16 |
-| Blank Grad-CAM++ maps | Hook landed on wrong layer | The code targets `backbone.blocks[-1]` with two fallbacks; check the `[GradCAM] Target:` print line |
+| Blank Grad-CAM++ maps | Missing ReLU on the gradients in the Grad-CAM++ channel weights (or hook on the wrong layer) | Use the corrected implementation in `audit/kaggle/03_xai_rerun.py`; the notebook targets `backbone.blocks[-1]`, check the `[GradCAM] Target:` print line |
+| `Missing key(s) in state_dict` when loading a checkpoint | SWA `AveragedModel` keys (`module.` prefix, `n_averaged`) | See Section 6 |
+
+---
+
+## 9. Revision Audit (cross-dataset transfer and explainability)
+
+The revised manuscript corrects three parts of the original analysis:
+
+- the cross-dataset evaluation in `cross-gen.ipynb`, which omitted the training preprocessing and did not account for the viridis pseudo-colour encoding of the Kaggle D3 release;
+- the explainability code in `beyond-accuracy.ipynb` (Grad-CAM++ gradient rectification, one-image IoU, and a shared SHAP map in deletion–insertion);
+- the temperature fit in `TemperatureScaler.set_temperature`, whose single L-BFGS step does not converge (the revised results use a converged bounded minimisation).
+
+The code for these corrections, with built-in checks that first reproduce the originally published numbers, is in [`audit/`](audit/README.md):
+
+| Step | Script | Manuscript items |
+|------|--------|------------------|
+| GPU (Kaggle) | `audit/kaggle/00_load_models.py` → `01`, `02`, `03` | Tables 13, 14b–c; Figs. 7–9; Supplementary Figs. S2–S3; Supplementary Table S2 |
+| GPU (Kaggle) | `audit/kaggle/04`, `04b`, `05` (then re-run `01`, `03`) | Converged temperature scaling: Tables 11–12, Fig. 6, selective prediction; Supplementary Fig. S1 |
+| CPU (local) | `audit/local/13_phash_threshold_sensitivity.py` | Supplementary Table S1 (δ = 0–10) |
+| CPU (local) | `audit/local/10_overlap_table14a.py` | Table 14a |
+| CPU (local) | `audit/local/11_tables_and_stats.py` | Tables 13, 14b, 14c and all quoted counts (prints `ALL PASS`) |
+| CPU (local) | `audit/local/12_figures.py` | Figs. 6, 7, 8, 9 and Supplementary Fig. S3 |

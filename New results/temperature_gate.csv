@@ -1,0 +1,5 @@
+dataset,T_star_checkpoint,T_argmin_cal_nll,match
+D1,0.8752,0.88,True
+D2,0.7446,0.74,True
+D3,0.7351,0.74,True
+D4,0.7368,0.74,True

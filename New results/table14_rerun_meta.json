@@ -1,0 +1,17 @@
+{
+  "threshold": 6,
+  "seen_splits": [
+    "cal",
+    "train",
+    "val"
+  ],
+  "gate_pass": true,
+  "published": {
+    "D2->D4": 79.3,
+    "D4->D2": 63.55,
+    "D2->D3": 27.42,
+    "D4->D3": 31.77,
+    "D3->D2": 73.0,
+    "D3->D4": 69.25
+  }
+}
