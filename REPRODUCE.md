@@ -97,7 +97,7 @@ Smoke test settings: 5 epochs, 2 CV folds, 100 bootstrap resamples, no baselines
 
 ---
 
-## 5. Verifying the pHash Leakage Check
+## 5. Verifying the pHash Group-Separation Check
 
 After any run, open `outputs_pytorch/<DATASET>/<DATASET>_phash_dedup_report.json` and confirm:
 
@@ -106,6 +106,8 @@ After any run, open `outputs_pytorch/<DATASET>/<DATASET>_phash_dedup_report.json
 ```
 
 If this field is missing or does not say PASS, the split integrity assertion in `_stratified_group_split_records` would have raised a `RuntimeError` and halted the run.
+
+The field keeps the key name `leakage_check` used by the notebook, but a PASS only means that no **detected** pHash group (δ ≤ 6) crosses partitions. Patient identifiers are unavailable, so it does not establish patient-level separation, and similar images missed by the threshold can still cross partitions (see the paper, Sections 3.1.2 and 5.3).
 
 ---
 
@@ -159,7 +161,7 @@ In the **revised manuscript**, Table 10 (per-class metrics), Tables 11–12 (cal
 | `RuntimeError: Duplicate groups were split across partitions` | Hash collision edge case | Should never happen; if it does, file an issue with the dataset key |
 | `thop.profile failed` | Model wrapper prevents FLOPs counting | The fallback estimate table activates automatically; no action needed |
 | `CUDA out of memory` | Batch size too large | Reduce `Config.BATCH_SIZE` to 16 |
-| Blank Grad-CAM++ maps | Missing ReLU on the gradients in the Grad-CAM++ channel weights (or hook on the wrong layer) | Use the corrected implementation in `audit/kaggle/03_xai_rerun.py`; the notebook targets `backbone.blocks[-1]`, check the `[GradCAM] Target:` print line |
+| Blank Grad-CAM++ maps | Missing ReLU on the gradients in the Grad-CAM++ channel weights (or hook on the wrong layer) | Use the corrected implementation in `audit/kaggle/03_xai_rerun.py`; the notebook targets `backbone.blocks[-1]`, check the `[GradCAM] Target:` print line. With the Eq. 19 coefficients, 64 of the 750 evaluated maps are still constant, because the activations of this layer can be negative (see `audit/README.md`) |
 | `Missing key(s) in state_dict` when loading a checkpoint | SWA `AveragedModel` keys (`module.` prefix, `n_averaged`) | See Section 6 |
 
 ---
@@ -169,7 +171,7 @@ In the **revised manuscript**, Table 10 (per-class metrics), Tables 11–12 (cal
 The revised manuscript corrects three parts of the original analysis:
 
 - the cross-dataset evaluation in `cross-gen.ipynb`, which omitted the training preprocessing and did not account for the viridis pseudo-colour encoding of the Kaggle D3 release;
-- the explainability code in `beyond-accuracy.ipynb` (Grad-CAM++ gradient rectification, one-image IoU, and a shared SHAP map in deletion–insertion);
+- the explainability code in `beyond-accuracy.ipynb` (Grad-CAM++ gradient rectification, one-image IoU, and a shared SHAP map in deletion–insertion), and, in the second revision, the Grad-CAM++ coefficient denominator (also present in the first-revision code);
 - the temperature fit in `TemperatureScaler.set_temperature`, whose single L-BFGS step does not converge (the revised results use a converged bounded minimisation).
 
 The code for these corrections, with built-in checks that first reproduce the originally published numbers, is in [`audit/`](audit/README.md):
@@ -183,6 +185,7 @@ The code for these corrections, with built-in checks that first reproduce the or
 | CPU (local) | `audit/local/11_tables_and_stats.py` | Tables 14, 15b, 15c and all quoted counts (prints `ALL PASS`) |
 | CPU (local) | `audit/local/12_figures.py` | Figs. 6, 7, 8, 9 and Supplementary Fig. S3 |
 | GPU (Kaggle) | `audit/kaggle/00` → `06_per_class_metrics.py` | Table 10 (per-class specificity and AUC); Figs. 4–5 |
+| GPU (Kaggle) | `audit/kaggle/00` → `09_gradcampp_fix.py` | Second revision: Grad-CAM++ with the coefficients of Chattopadhay et al. (2018); Table 14 and Fig. 8 (reproduces the first-revision values first) |
 | GPU (Kaggle) | `audit/kaggle/00` → `07_training_history.py` | Fig. 3 (logged re-run of the final-model training) |
 | CPU (Kaggle) | `audit/kaggle/08_figure1_dataset_examples.py` | Fig. 1 |
 | CPU (local) | `audit/local/14_figure2_flowchart.py` | Fig. 2 |

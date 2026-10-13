@@ -1,65 +1,61 @@
-# Beyond Accuracy: A Reliability-Oriented Framework for Brain Tumor MRI Classification with Calibration, Explainability, and Cross-Dataset Validation
+# Beyond Accuracy: A Reliability-Oriented Evaluation Framework for Brain Tumor MRI Classification Using Calibration, Explainability, and Cross-Dataset Auditing
 
-# Graphical Abstract
 
-<img src="Abstract.png" width="50%" />
-
-**Author:** Ibrahim Hayatu Hassan
+**Principal author:** Ibrahim Hayatu Hassan
 
 ---
 
-## Experimental Overview 
+## Experimental Overview
 
-This repository contains the full implementation for the paper *"Beyond Accuracy: A Reliability-Oriented Framework for Brain Tumor MRI Classification with Calibration, Explainability, and Cross-Dataset Validation"*. The framework targets the limitations of accuracy-only evaluation in medical imaging by combining:
+This repository contains the code for the paper *"Beyond Accuracy: A Reliability-Oriented Evaluation Framework for Brain Tumor MRI Classification Using Calibration, Explainability, and Cross-Dataset Auditing"*. The framework looks beyond accuracy-only evaluation by combining:
 
-- **EfficientNetV2-B0** backbone with a custom **Dual-Pooling Attention (DPA)** head
-- **Post-hoc temperature scaling** calibration on a dedicated, leakage-safe calibration split
-- **Perceptual-hash (pHash) duplicate screening** with group-level stratified partitioning to prevent cross-partition leakage
-- **Bootstrap 95% confidence intervals** (B = 2,000) on all reported metrics
-- **Holm-Bonferroni corrected McNemar tests** against 7 baseline architectures
-- **Multi-method XAI ensemble** (SHAP, Grad-CAM++, Integrated Gradients) with top-10% IoU agreement and deletion/insertion AUC
-- **Selective prediction** (risk-coverage) analysis
+- an **EfficientNetV2-B0** backbone with a **Dual-Pooling Attention (DPA)** head;
+- **perceptual-hash (pHash) duplicate screening** with group-level stratified partitioning, so that detected near-duplicate groups do not cross the train/calibration/validation/test partitions;
+- **post-hoc temperature scaling** fitted on a dedicated calibration partition;
+- **bootstrap 95% confidence intervals** (B = 2,000) and Holm-adjusted McNemar tests against seven baseline backbones;
+- **explanation assessment** (SHAP, Grad-CAM++, Integrated Gradients): top-10% IoU agreement and deletion/insertion AUC;
+- **selective prediction** (risk–coverage) analysis;
+- a **cross-dataset transfer audit** of preprocessing, input encoding and near-duplicate overlap between benchmarks.
 
-All numerical claims in the manuscript are traceable to `outputs file/<DATASET>/experiment_summary.json`.
+**Scope of the evaluation.** Patient identifiers are not available in the public benchmark releases, so partitioning operates at the image and pHash-group level. It does not guarantee patient-level separation, and absence of a detected pHash match does not certify independence. The benchmarks also share much of their source material: 25.3–78.5% of each transfer's target test images have a pHash match to a source-development image. The within-dataset and cross-dataset results are therefore **not** evidence of generalization to independent patients, institutions or clinical settings, and the transfer experiments are audits, not external validation.
+
+## Where the reported numbers come from
+
+- **Revised manuscript.** Table 10, Tables 11–12, Table 14, Tables 15a–c, Figs. 1–9 and the supplementary material are produced by the scripts in [`audit/`](audit/README.md), not by the notebook JSON. Each GPU script first reproduces the previously reported numbers before applying a correction.
+- **Original notebook.** [`beyond-accuracy.ipynb`](beyond-accuracy.ipynb) trains the models and writes `experiment_summary.json` per dataset; it is kept unchanged for provenance. Its cross-dataset evaluation ([`cross-gen.ipynb`](cross-gen.ipynb)) and its explainability code contain errors that are documented and corrected in [`audit/README.md`](audit/README.md).
+
+See [`REPRODUCE.md`](REPRODUCE.md) for the step-by-step reproduction guide.
+
 ---
 
 ## Repository Structure
 
 ```
 beyond-accuracy/
-├── beyond-accuracy.ipynb       # Main notebook (Kaggle-ready, GPU recommended)
-├── requirements.txt            # Python dependencies
-├── environment.yml             # Conda environment specification
-├── REPRODUCE.md                # Step-by-step reproduction guide
-├── outputs_pytorch/            # Auto-created; all results written here
-│   └── <DATASET>/
-│       ├── experiment_summary.json
-│       ├── <DATASET>_phash_group_split.csv
-│       ├── <DATASET>_phash_dedup_report.json
-│       ├── <DATASET>_phash_candidate_pairs.csv
-│       ├── best_effnetv2_bt_pytorch.pth
-│       ├── final_model_v5_pytorch.pth
-│       ├── final_model_v5_calibrated_pytorch.pth
-│       └── *.pdf               # Figures
-└── .github/
-    └── workflows/
-        └── smoke_test.yml      # CI smoke-test (5 epochs, 2 folds)
+├── beyond-accuracy.ipynb       # Original training/evaluation notebook (Kaggle, GPU)
+├── cross-gen.ipynb             # Original cross-dataset notebook (kept for provenance)
+├── audit/                      # Code behind the corrections in the revised manuscript
+│   ├── kaggle/                 #   GPU scripts (00–09)
+│   ├── local/                  #   CPU scripts: tables, statistics, figures (10–14)
+│   └── results/                #   Tables and figures of the revised manuscript
+├── Output files/               # Calibrated checkpoints and *_phash_group_split.csv per dataset
+├── New results/, results/      # Kaggle outputs consumed by audit/local
+├── requirements.txt, environment.yml
+└── REPRODUCE.md                # Step-by-step reproduction guide
 ```
 
 ---
 
 ## Datasets
 
-The notebook supports four datasets, selected via the `DATASET` variable at the top of the notebook:
-
 | Key | Name | Classes | Source |
 |-----|------|---------|--------|
 | `D1` | Kaggle SARTAJ | 4 | [Kaggle](https://www.kaggle.com/datasets/sartajbhuvaji/brain-tumor-classification-mri) |
 | `D2` | BRISC-2025 | 4 | [Kaggle](https://www.kaggle.com/datasets/briscdataset/brisc2025) |
-| `D3` | Figshare (Cheng 2017) | 3 | [Kaggle](https://www.kaggle.com/datasets/denizkavi1/brain-tumor) |
-| `D4` | Nickparvar (Combined) | 4 | [Kaggle](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset) |
+| `D3` | Figshare (Cheng 2017), Kaggle release | 3 | [Kaggle](https://www.kaggle.com/datasets/denizkavi1/brain-tumor) |
+| `D4` | Nickparvar (combination of D1, D3 and Br35H) | 4 | [Kaggle](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset) |
 
-Attach the desired dataset to your Kaggle notebook before running. The loader auto-detects the folder layout (`Training/Testing/`, `train/test/`, or flat).
+The Kaggle release of D3 stores each slice as a four-channel viridis pseudo-colour PNG rather than a grayscale image; see Section 3.1.1 of the paper and [`audit/README.md`](audit/README.md).
 
 ---
 
@@ -70,13 +66,15 @@ Attach the desired dataset to your Kaggle notebook before running. The loader au
 1. Upload `beyond-accuracy.ipynb` to [kaggle.com/code](https://www.kaggle.com/code).
 2. Attach the desired dataset (see table above).
 3. Set `DATASET = "D1"` (or D2/D3/D4) and `SMOKE_TEST = False`.
-4. Set accelerator to **GPU T4 x2** and run all cells.
+4. Set the accelerator to **GPU T4 x2** and run all cells.
+
+To reproduce the revised manuscript's tables and figures from the released checkpoints (no retraining), follow [`audit/README.md`](audit/README.md).
 
 ### Option B — Local / Colab
 
 ```bash
-git clone https://github.com/<your-username>/beyond-accuracy.git
-cd beyond-accuracy
+git clone https://github.com/rogo2003/Beyond-Accuracy.git
+cd Beyond-Accuracy
 conda env create -f environment.yml
 conda activate beyond-accuracy
 jupyter notebook beyond-accuracy.ipynb
@@ -84,13 +82,7 @@ jupyter notebook beyond-accuracy.ipynb
 
 Set `DATASET` and point `Config.DATASET_DIR` to your local data path.
 
----
-
-## Reproducing Results
-
-See [`REPRODUCE.md`](REPRODUCE.md) for the exact sequence of steps, expected runtimes, and how to verify outputs against the manuscript tables.
-
-**Key configuration variables** (top of notebook, change only these between runs):
+**Key configuration variables** (top of notebook):
 
 ```python
 DATASET    = "D2"    # "D1" | "D2" | "D3" | "D4"
@@ -99,9 +91,9 @@ SMOKE_TEST = False   # True → ~10-min sanity run; False → full ~12h canonica
 
 ---
 
-## Data Integrity: pHash Duplicate Screening
+## pHash Duplicate Screening
 
-All images are first pooled across provider-defined splits, hashed with a 64-bit DCT perceptual hash (H=8, δ≤6 Hamming distance), and grouped before any partition is formed. This prevents exact or near-duplicate images from appearing in more than one of the train/cal/val/test subsets.
+All images are pooled across provider-defined splits, hashed with a 64-bit DCT perceptual hash (H = 8), linked at Hamming distance δ ≤ 6 and grouped (union-find) before any partition is formed. Each group is assigned to a single partition, so **detected** exact and near-duplicate images do not appear in more than one of the train/calibration/validation/test subsets. Related slices of the same patient, or similar images missed at this threshold, can still fall into different partitions; threshold sensitivity (δ = 0–10) is reported in Supplementary Table S1.
 
 Three audit files are written per dataset run:
 
@@ -109,56 +101,26 @@ Three audit files are written per dataset run:
 |------|----------|
 | `<D>_phash_group_split.csv` | Per-image partition assignment and group ID |
 | `<D>_phash_candidate_pairs.csv` | All exact and near-duplicate pairs with Hamming distances |
-| `<D>_phash_dedup_report.json` | Summary statistics and leakage-check result |
+| `<D>_phash_dedup_report.json` | Summary statistics and the check that no detected group crosses partitions |
 
 ---
 
-## Outputs
+## Figures
 
-Every run produces a `experiment_summary.json` containing all manuscript-reported numbers:
+The figures of the revised manuscript are written to [`audit/results/figures/`](audit/results/figures/) by `audit/local/12_figures.py` (Figs. 6–9, Supplementary Fig. S3) and by the Kaggle scripts listed in [`audit/README.md`](audit/README.md) (Figs. 1–5, Supplementary Figs. S1–S2).
 
-```json
-{
-  "dataset_key": "D2",
-  "splits": { "n_train": ..., "n_cal": ..., "n_val": ..., "n_test": ... },
-  "test_calibrated": { "acc": ..., "f1": ..., "auc": ... },
-  "bootstrap_ci_calibrated": { "Accuracy": { "point": ..., "ci_low": ..., "ci_high": ... }, ... },
-  "calibration": { "ece_uncalibrated": ..., "ece_calibrated": ..., "optimal_T": ... },
-  "mcnemar_holm": [ { "baseline": "ResNet50", "p_raw": ..., "p_holm": ..., ... }, ... ],
-  "xai": { "iou_per_class": ..., "deletion_insertion_auc": ... },
-  ...
-}
-```
-
----
-<img src="image-4.png" width="50%" />
-Figure 3. Learning dynamics of the proposed model on (a) D1, (b) D2, (c) D3, and (d) D4. Each panel shows training and validation loss (left) and accuracy (right) during optimization.
-
-<img src="image-1.png" width="50%" />
-Fig. 4 Confusion matrices of the proposed model on the test set for (a) D1, (b) D2, and (c) D3.
-
-<img src="image-2.png" width="50%" />
-Fig. 5. Per-class ROC curves of the proposed model on (a) D1, (b) D2, and (c) D3
-
-<img src="image-3.png" width="50%" />
-Fig. 6 Reliability diagrams before and after temperature scaling for the four datasets. 
-
-<img src="image-5.png" width="50%" />
-Fig. 7. Deletion–Insertion faithfulness curves averaged over ten samples per class.
-
-<img src="image-6.png" width="50%" />
-Figure 9. Cross-dataset generalization analysis. (a) Zero-shot transfer accuracy (%) between source and target datasets. Diagonal entries represent within-dataset performance, while off-diagonal entries correspond to external evaluation without fine-tuning. (b) Generalization gap (ΔAcc), defined as the reduction in accuracy relative to within-dataset performance. Larger values indicate stronger dataset shift and reduced transferability.
+Fig. 8 and Table 14 use the Grad-CAM++ coefficients of Chattopadhay et al. (2018), corrected in the second revision (`audit/kaggle/09_gradcampp_fix.py`).
 
 ## Citation
 
 If you use this code, please cite:
 
 ```bibtex
-@article{hassan2025beyondaccuracy,
-  title   = {Beyond Accuracy: A Reliability-Oriented Framework for Brain Tumor MRI Classification with Calibration, Explainability, and Cross-Dataset Validation},
-  author  = {Hassan, Ibrahim Hayatu; Hitham, Alhussian; Said, Jadid Abdulkadir; Majdy, Mohamed Eltayeb Eltahi; Shamsuddeen, Adamu; Aliyu Garba; Abubakar, Mukhtar; Aliyu, Ibrahim Tetengi; Mohammed Abdullahi},
+@article{hassan2026beyondaccuracy,
+  title   = {Beyond Accuracy: A Reliability-Oriented Evaluation Framework for Brain Tumor MRI Classification Using Calibration, Explainability, and Cross-Dataset Auditing},
+  author  = {Hassan, Ibrahim Hayatu and Alhussian, Hitham and Abdulkadir, Said Jadid and Eltahir, Majdy Mohamed Eltayeb and Adamu, Shamsuddeen and Garba, Aliyu and Mukhtar, Abubakar and Ibrahim, Aliyu Tetengi and Abdullahi, Mohammed},
   year    = {2026},
-  note    = {Manuscript under review}
+  note    = {Manuscript under review, BMC Medical Imaging}
 }
 ```
 

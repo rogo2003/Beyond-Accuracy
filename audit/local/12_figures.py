@@ -3,7 +3,8 @@
 Runs locally (no GPU). Run 11_tables_and_stats.py first (it writes xai_tests.csv and table14b.csv).
 Inputs:
   --results : table14_rerun_predictions.csv.gz, xai_rerun_summary.csv,
-              D1–D4_xai_examples.png, D1–D4_deletion_insertion.png   (from the Kaggle cells)
+              D1–D4_deletion_insertion.png                          (from the Kaggle cells)
+  --xai     : D1–D4_xai_examples.png (corrected Grad-CAM++, 09_gradcampp_fix.py; default "New results/xai_gcpp_fix")
   --tables  : table14b.csv, xai_tests.csv                             (from 11_tables_and_stats.py)
 Fig. 6 also needs recal_reliability_diagrams.png, recal_temperatures.json (kaggle/05) and temperature_sensitivity.csv (kaggle/04).
 Supplementary Fig. S2 is written by kaggle/02_d3_pair_diagnostic.py and Fig. S1 by kaggle/04.
@@ -157,9 +158,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default=".")
     ap.add_argument("--tables", default="audit/results")
+    ap.add_argument("--xai", default="New results/xai_gcpp_fix")
     ap.add_argument("--out", default="audit/results/figures")
     a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
-    fig6(a.results, a.out); fig7(a.results, a.tables, a.out); fig8(a.results, a.out); figS2(a.results, a.out); fig9(a.results, a.tables, a.out)
+    fig6(a.results, a.out); fig7(a.results, a.tables, a.out); fig8(a.xai, a.out); figS2(a.results, a.out); fig9(a.results, a.tables, a.out)
     print("Figures written to", a.out, ":", sorted(os.listdir(a.out)))
 
 if __name__ == "__main__":

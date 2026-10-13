@@ -9,6 +9,10 @@
 #      (the original used ONE image per class, although Algorithm 6 says "each test image").
 #   3. Deletion–insertion ranks each image by ITS OWN SHAP map
 #      (the original reused one class-representative SHAP map for all 50 images).
+#   4. (second revision) Grad-CAM++ coefficients follow Chattopadhay et al. (2018, Eq. 19):
+#      α_ij = g_ij² / (2·g_ij² + (Σ_ab A_ab)·g_ij³). The first revision used Σ_ab(A_ab·g_ab³)
+#      in the denominator, as did the original notebook; see 09_gradcampp_fix.py, which
+#      reproduces the first-revision values and produced the corrected Table 14 / Fig. 8.
 #  A random-order deletion–insertion baseline is added for reference.
 # ═══════════════════════════════════════════════════════════════════════
 import json, time, shap
@@ -48,10 +52,15 @@ class GradCAMpp:
         self.layer.register_forward_hook(lambda m, i, o: setattr(self, "acts", o))
         self.layer.register_full_backward_hook(lambda m, gi, go: setattr(self, "grads", go[0]))
     def __call__(self, x, c, fixed=True):
+        """fixed=True: corrected Grad-CAM++ (Eq. 19, ReLU on gradients); fixed=False: original notebook."""
         self.model.zero_grad(); self.model(x)[0, c].backward()
         with torch.no_grad():
             g, a = self.grads, self.acts
-            alpha = g.pow(2) / (2 * g.pow(2) + (a * g.pow(3)).sum((2, 3), keepdim=True) + 1e-7)
+            if fixed:
+                alpha = g.pow(2) / (2 * g.pow(2) + a.sum((2, 3), keepdim=True) * g.pow(3) + 1e-7)
+                alpha = torch.nan_to_num(alpha, nan=0.0, posinf=0.0, neginf=0.0)
+            else:
+                alpha = g.pow(2) / (2 * g.pow(2) + (a * g.pow(3)).sum((2, 3), keepdim=True) + 1e-7)
             w = (alpha * (F.relu(g) if fixed else g)).sum((2, 3), keepdim=True)
             cam = F.relu((w * a).sum(1, keepdim=True))
             cam = F.interpolate(cam, size=IMG_SIZE, mode="bilinear", align_corners=False).squeeze().cpu().numpy()
@@ -180,7 +189,7 @@ for ds in DATASETS:
     fig, ax = plt.subplots(len(fig8), 4, figsize=(12, 3 * len(fig8)), squeeze=False)
     for r_, (c, (img_t, sh, gc_f, ig)) in enumerate(fig8.items()):
         img = (img_t.permute(1, 2, 0).numpy() * np.array(NORM_STD) + np.array(NORM_MEAN)).clip(0, 1)
-        for k_, (m_, cm, ttl) in enumerate([(img, None, "Input"), (sh, "bwr", "SHAP"), (gc_f, "jet", "Grad-CAM++ (fixed)"), (ig, "hot", "IG")]):
+        for k_, (m_, cm, ttl) in enumerate([(img, None, "Input"), (sh, "bwr", "SHAP"), (gc_f, "jet", "Grad-CAM++"), (ig, "hot", "IG")]):
             ax[r_][k_].imshow(m_, cmap=cm); ax[r_][k_].set_title(f"{c} — {ttl}", fontsize=9); ax[r_][k_].axis("off")
     plt.tight_layout(); plt.savefig(f"{OUT}/{ds}_xai_examples.png", dpi=200); plt.close()
     print(f"  [{ds}] done in {(time.time() - t0) / 60:.1f} min")

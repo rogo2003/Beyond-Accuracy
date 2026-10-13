@@ -2,12 +2,13 @@
 
 Runs locally (no GPU). Inputs (written by the Kaggle cells):
   table14_rerun_results.csv              (01_table14_transfer_audit.py)
-  xai_rerun_summary.csv, xai_rerun_per_image.csv   (03_xai_rerun.py)
+  xai_rerun_per_image.csv   (--xai; corrected Grad-CAM++ from 09_gradcampp_fix.py, default
+                             "New results/xai_gcpp_fix"; pass --xai . for the first-revision values)
 
 Outputs (in --out): table14b.csv, table14c.csv, table13.csv, xai_tests.csv
 and a check of every count quoted in the revised manuscript.
 
-Usage:  python audit/local/11_tables_and_stats.py [--results .] [--out audit/results]
+Usage:  python audit/local/11_tables_and_stats.py [--results .] [--xai "New results/xai_gcpp_fix"] [--out audit/results]
 """
 import argparse, os
 import numpy as np, pandas as pd
@@ -64,6 +65,7 @@ def xai_tests(per):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default=".")
+    ap.add_argument("--xai", default="New results/xai_gcpp_fix")
     ap.add_argument("--out", default="audit/results")
     a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     pd.set_option("display.width", 220)
@@ -74,7 +76,7 @@ def main():
     print("=== Table 14b ===\n" + t14b.round(2).to_string(index=False))
     print("\n=== Table 14c ===\n" + t14c.round(2).to_string(index=False))
 
-    per = pd.read_csv(os.path.join(a.results, "xai_rerun_per_image.csv"))
+    per = pd.read_csv(os.path.join(a.xai, "xai_rerun_per_image.csv"))
     t = xai_tests(per); t.to_csv(os.path.join(a.out, "xai_tests.csv"), index=False)
     t13 = t[["dataset", "class", "SG", "SG_sd", "SI", "SI_sd", "GI", "GI_sd"]].copy()
     t13["mean"] = t13[["SG", "SI", "GI"]].mean(1)
@@ -85,7 +87,7 @@ def main():
     print("\n=== Table 13 (per class) ===\n" + t13.round(3).to_string(index=False))
     print("\n=== Table 13 (overall rows) ===\n" + overall.round(3).to_string())
 
-    # Every count quoted in the revised manuscript
+    # Every count quoted in the revised manuscript (Grad-CAM++ rows: second revision, Eq. 19 coefficients)
     checks = {
         "Original pipeline reproduces Table 14 (6/6)": all(abs(t14b.acc_original - [79.30, 63.55, 27.42, 31.77, 73.00, 69.25]) < 0.5),
         "Harmonised accuracy range 94.99–99.67": (round(t14b.acc_harmonised.min(), 2), round(t14b.acc_harmonised.max(), 2)) == (94.99, 99.67),
@@ -96,11 +98,11 @@ def main():
                                                           round(t14c.clean_acc.min(), 2), round(t14c.clean_acc.max(), 2)) == (98.78, 99.50, 91.11, 99.04),
         "SHAP–IG above chance in 15/15": int((t.SI_p_holm < 0.05).sum()) == 15,
         "SHAP–Grad-CAM++ above chance in 1/15": int((t.SG_p_holm < 0.05).sum()) == 1,
-        "Grad-CAM++–IG above chance in 5/15": int((t.GI_p_holm < 0.05).sum()) == 5,
+        "Grad-CAM++–IG above chance in 0/15": int((t.GI_p_holm < 0.05).sum()) == 0,
         "Insertion SHAP > random in 12/15": int((t.ins_p_holm < 0.05).sum()) == 12,
         "Deletion SHAP < random in 6/15": int((t.del_p_holm < 0.05).sum()) == 6,
-        "Flat Grad-CAM++ maps: 10 of 750": int(t.n_flat_gradcam.sum()) == 10 and len(per) == 750,
-        "Dataset mean IoU 0.091/0.085/0.096/0.075": [round(v, 3) for v in overall["mean"]] == [0.091, 0.085, 0.096, 0.075],
+        "Flat Grad-CAM++ maps: 64 of 750": int(t.n_flat_gradcam.sum()) == 64 and len(per) == 750,
+        "Dataset mean IoU 0.089/0.081/0.094/0.071": [round(v, 3) for v in overall["mean"]] == [0.089, 0.081, 0.094, 0.071],
     }
     print("\n=== Checks against the revised manuscript ===")
     for k, v in checks.items(): print(f"  {'PASS' if v else 'FAIL'}  {k}")
