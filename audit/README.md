@@ -30,6 +30,7 @@ Every GPU script first **reproduces the originally published numbers** and only 
 | `local/11_tables_and_stats.py` | Local (CPU) | Tables 14, 15b, 15c; Wilcoxon/Holm tests for IoU and deletion–insertion | 13 checks against every count and range quoted in the text |
 | `local/12_figures.py` | Local (CPU) | Figs. 6, 7, 8, 9 and Supplementary Fig. S3 | — |
 | `local/13_phash_threshold_sensitivity.py` | Local (CPU) | Duplicate grouping for δ = 0…10 (groups, largest group, label-mixed groups) | δ = 6 must reproduce the notebook's group counts (1,920 / 3,861 / 1,593 / 3,659) |
+| `local/15_gradcampp_equation_check.py` | Local (CPU, ~5 min; needs a copy of the D1 dataset) | Grad-CAM++ on the released D1 model → `gradcampp_equation_check_D1.csv`, `gradcampp_reproduction_D1.csv` | The `09`/`03` maps must equal Eqs. (8)–(9) written out term by term; hooks must equal `autograd.grad`; `03` ≡ `09`; constant-map flags and first-revision-vs-corrected mask IoU must reproduce the Kaggle output for the same 200 D1 images |
 | `local/14_figure2_flowchart.py` | Local (CPU) | Fig. 2 framework flowchart at printed size (17 cm wide; Times New Roman 9/10 pt) as SVG, PDF and PNG | Checks that every label fits inside its box |
 
 ## How to run
